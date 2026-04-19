@@ -1,0 +1,100 @@
+-- Servicios
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local TweenService = game:GetService("TweenService")
+
+-- Variables del farm
+local farmingActive = false
+local farmCoroutine = nil
+local eggCount = 0
+
+-- Función de recolección (original del usuario)
+local function collectEggs()
+    if not farmingActive then return end
+
+    for _, obj in pairs(workspace:GetDescendants()) do
+        if obj.Name:lower():find("egg") or obj.Name:lower():find("huevo") then
+            if obj:IsA("BasePart") and obj.Position ~= Vector3.new(0, 0, 0) then
+                eggCount = eggCount + 1
+
+                if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                    local humanoidRootPart = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+                    if humanoidRootPart then
+                        humanoidRootPart.CFrame = obj.CFrame
+                    end
+                end
+
+                task.wait(0.1)
+            end
+        end
+    end
+end
+
+-- Bucle principal del farm
+local function startFarming()
+    if farmCoroutine then return end
+    farmingActive = true
+    farmCoroutine = task.spawn(function()
+        while farmingActive do
+            collectEggs()
+            task.wait(2)
+        end
+    end)
+end
+
+-- Crear la GUI principal
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "FarmHuevosGui"
+screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+
+-- ========== BOTÓN "Farm huevos Duels" ==========
+local farmButton = Instance.new("TextButton")
+farmButton.Name = "FarmButton"
+farmButton.Size = UDim2.new(0, 200, 0, 60)
+farmButton.Position = UDim2.new(0.5, -100, 0.4, 0) -- Centrado
+farmButton.Text = "Farm huevos Duels"
+farmButton.TextScaled = true
+farmButton.BackgroundColor3 = Color3.fromRGB(0, 120, 200)
+farmButton.BorderSizePixel = 3
+farmButton.BorderColor3 = Color3.fromRGB(255, 215, 0) -- Borde dorado
+farmButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+farmButton.BackgroundTransparency = 0.1
+farmButton.Parent = screenGui
+
+-- Esquinas redondeadas
+local cornerFarm = Instance.new("UICorner")
+cornerFarm.CornerRadius = UDim.new(0, 12)
+cornerFarm.Parent = farmButton
+
+-- ========== TEXTO "by El pepe" ==========
+local creditLabel = Instance.new("TextLabel")
+creditLabel.Size = UDim2.new(0, 150, 0, 30)
+creditLabel.Position = UDim2.new(0.5, -75, 0.55, 0)
+creditLabel.Text = "by El pepe"
+creditLabel.TextScaled = true
+creditLabel.BackgroundTransparency = 1
+creditLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+creditLabel.TextXAlignment = Enum.TextXAlignment.Center
+creditLabel.Parent = screenGui
+
+-- ========== ACCIÓN AL PRESIONAR EL BOTÓN DE FARMEO ==========
+farmButton.MouseButton1Click:Connect(function()
+    if not farmingActive then
+        startFarming()
+        -- Feedback visual
+        farmButton.Text = "¡Farm activado!"
+        farmButton.BackgroundColor3 = Color3.fromRGB(0, 180, 0)
+        task.wait(1)
+        farmButton.Text = "Farm huevos Duels"
+        farmButton.BackgroundColor3 = Color3.fromRGB(0, 120, 200)
+    end
+end)
+
+-- Efecto hover
+farmButton.MouseEnter:Connect(function()
+    TweenService:Create(farmButton, TweenInfo.new(0.2), {BackgroundTransparency = 0}):Play()
+end)
+
+farmButton.MouseLeave:Connect(function()
+    TweenService:Create(farmButton, TweenInfo.new(0.2), {BackgroundTransparency = 0.1}):Play()
+end)
